@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Runtime;
 using TestTask;
 
 [Route("api/[controller]")]
@@ -9,36 +10,67 @@ using TestTask;
 public class CalculateController : ControllerBase
 {
     private readonly AppSettings _appSettings;
+    private List<double> squares;
 
     public CalculateController(IOptions<AppSettings> appSettings)
     {
         _appSettings = appSettings.Value;
+        squares = new List<double>();
     }
     [HttpPost]
     [Route("calculate")]
-    public IActionResult CalculateSumOfSquares([FromBody] CalculationRequest request)
+    public async Task<IActionResult> CalculateSumOfSquares([FromBody] CalculationRequest request)
     {
-        // ѕроверка ограничений по максимальному количеству аргументов и значени€м
-        int maxArgumentCount = _appSettings.maxArgumentCount;
-        double minArgumentValue = _appSettings.MinArgumentValue;
-        double maxArgumentValue = _appSettings.MaxArgumentValue;
-
-        if (request.Values.Count > maxArgumentCount)
+        if (IsArgumentCountExceeded(request.Values.Count))
         {
             return BadRequest("ѕревышено максимальное количество аргументов.");
         }
 
-        foreach (var value in request.Values)
+        if (IsAnyArgumentOutOfRange(request.Values))
         {
-            if (Math.Abs(value) > maxArgumentValue && Math.Abs(value) < minArgumentValue)
-            {
-                return BadRequest("ѕревышено максимальное или минимальное значение аргумента.");
-            }
+            return BadRequest("ѕревышено максимальное или минимальное значение аргумента.");
         }
 
-        // –асчет суммы квадратов
-        double sumOfSquares = request.Values.Sum(x => x * x);
+        await CalculateSquaresAsync(request.Values);
 
+        double sumOfSquares = squares.Sum();
         return Ok(new { Result = sumOfSquares });
     }
+
+    /// <summary>
+    /// ѕроверка на превышение максимального количества аргументов
+    /// </summary>
+    /// <param name="argumentCount"></param>
+    /// <returns></returns>
+    private bool IsArgumentCountExceeded(int argumentCount)
+    {
+        return argumentCount > _appSettings.MaxArgumentCount;
+    }
+
+    /// <summary>
+    /// ѕроверка на превышение максимального или минимального значени€ аргумента
+    /// </summary>
+    /// <param name="values"></param>
+    /// <returns></returns>
+    private bool IsAnyArgumentOutOfRange(List<double> values)
+    {
+        return values.Any(value => Math.Abs(value) > _appSettings.MaxArgumentValue || Math.Abs(value) < _appSettings.MinArgumentValue);
+    }
+
+    /// <summary>
+    /// јсинхронное вычисление квадратов чисел с задержкой
+    /// </summary>
+    /// <param name="values"></param>
+    /// <returns></returns>
+    private async Task CalculateSquaresAsync(List<double> values)
+    {
+        foreach (var value in values)
+        {
+            int delayMilliseconds = new Random().Next(_appSettings.DelayMinMilliseconds, _appSettings.DelayMaxMilliseconds);
+            await Task.Delay(delayMilliseconds);
+            double square = value * value;
+            squares.Add(square);
+        }
+    }
+
 }
