@@ -17,6 +17,7 @@ IConfiguration configuration = new ConfigurationBuilder()
 builder.Services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
 
 var app = builder.Build();

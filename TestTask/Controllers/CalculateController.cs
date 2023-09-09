@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Runtime;
+using Microsoft.Extensions.Caching.Memory;
 using TestTask;
 
 [Route("api/[controller]")]
@@ -11,10 +12,11 @@ public class CalculateController : ControllerBase
 {
     private readonly AppSettings _appSettings;
     private List<double> squares;
-
-    public CalculateController(IOptions<AppSettings> appSettings)
+    private readonly IMemoryCache _memoryCache;
+    public CalculateController(IOptions<AppSettings> appSettings, IMemoryCache memoryCache)
     {
         _appSettings = appSettings.Value;
+        _memoryCache = memoryCache;
         squares = new List<double>();
     }
     [HttpPost]
@@ -66,11 +68,23 @@ public class CalculateController : ControllerBase
     {
         foreach (var value in values)
         {
-            int delayMilliseconds = new Random().Next(_appSettings.DelayMinMilliseconds, _appSettings.DelayMaxMilliseconds);
-            await Task.Delay(delayMilliseconds);
-            double square = value * value;
+            double square;
+
+            // Попытка получить результат из кэша
+            if (!_memoryCache.TryGetValue(value, out square))
+            {
+                // Если результат не найден в кэше, вычисляем его
+                int delayMilliseconds = new Random().Next(_appSettings.DelayMinMilliseconds, _appSettings.DelayMaxMilliseconds);
+                await Task.Delay(delayMilliseconds);
+                square = value * value;
+
+                // Кэшируем результат на указанное время
+                _memoryCache.Set(value, square, TimeSpan.FromMinutes(10));
+            }
+
             squares.Add(square);
         }
     }
+
 
 }
