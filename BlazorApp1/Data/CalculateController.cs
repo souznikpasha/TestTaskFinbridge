@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BlazorApp1.Model;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -18,6 +19,7 @@ namespace BlazorApp1.Data
         }
         public async Task<double> CalculateSumOfSquares(List<double> request)
         {
+            squares.Clear();
             if (IsArgumentCountExceeded(request.Count))
             {
                 return 0;
@@ -55,7 +57,6 @@ namespace BlazorApp1.Data
 
         public async Task<double> CalculateSumOfSquaresAsync(List<double> values)
         {
-            // Реализация метода CalculateSumOfSquaresAsync
             // Возвращает сумму квадратов чисел
             await CalculateSquaresAsync(values);
             double sumOfSquares = squares.Sum();
@@ -73,8 +74,26 @@ namespace BlazorApp1.Data
                 {
                     // Если результат не найден в кэше, вычисляем его
                     int delayMilliseconds = new Random().Next(_appSettings.DelayMinMilliseconds, _appSettings.DelayMaxMilliseconds);
-                    await Task.Delay(delayMilliseconds);
+
+                    // Запоминаем текущее время до расчета квадрата
+                    var startTime = DateTime.Now;
+
+                    // Рассчитываем квадрат числа
                     square = value * value;
+
+                    // Запоминаем текущее время после расчета квадрата
+                    var endTime = DateTime.Now;
+
+                    // Вычисляем время, затраченное на расчет
+                    var elapsedTime = endTime - startTime;
+
+                    // Если затраченное время меньше delayMilliseconds, ожидаем оставшееся время
+                    if (elapsedTime < TimeSpan.FromMilliseconds(delayMilliseconds))
+                    {
+                        var remainingDelay = TimeSpan.FromMilliseconds(delayMilliseconds) - elapsedTime;
+                        await Task.Delay(remainingDelay);
+                    }
+
 
                     // Кэшируем результат на указанное время
                     _memoryCache.Set(value, square, TimeSpan.FromMinutes(10));
