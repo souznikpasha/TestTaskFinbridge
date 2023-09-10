@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using BlazorApp1.Data;
+@using BlazorApp1.Model;
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations;
 @inject ICalculateService CalculateService
@@ -23,13 +24,13 @@
         <InputText id="result" class="form-control" @bind-Value="model.Result" disabled></InputText>
     </div>
 </EditForm>
-
 <div class="form-group">
+    <button class="btn btn-danger" @onclick="ClearHistory">Очистить историю</button>
     <h2>История результатов</h2>
     <ul>
         @foreach (var result in results)
         {
-                <li>@result</li>
+             <li>@result</li>
         }
     </ul>
 </div>
@@ -68,11 +69,7 @@
         // Разделите введенные значения и преобразуйте их в List<double>
         List<double> values = model.InputNumbers.Split(',').Select(value => double.Parse(value.Trim())).ToList();
 
-        // Вызов метода CalculateSumOfSquaresAsync из сервиса
-        double sumOfSquares = await CalculateService.CalculateSumOfSquares(values);
-
-        // Обновление результата
-        model.Result = sumOfSquares.ToString();
+        model.Result = (await CalculateService.CalculateSumOfSquares(values)).ToString();
 
         // Добавление результата в историю
         results.Insert(0, model.Result);
@@ -80,10 +77,10 @@
         // Сохранение истории в localStorage
         await JSRuntime.InvokeVoidAsync("localStorage.setItem", "results", string.Join(",", results));
     }
-
-    public void Dispose()
+    private void ClearHistory()
     {
-        // Освободите ресурсы, если это необходимо
+        results.Clear();
+        JSRuntime.InvokeVoidAsync("localStorage.removeItem", "results"); // Удаление из localStorage
     }
 
     private class CalculatorModel
@@ -91,5 +88,10 @@
         [Required(ErrorMessage = "Введите числа")]
         public string InputNumbers { get; set; }
         public string Result { get; set; }
+    }
+
+    public void Dispose()
+    {
+
     }
 }

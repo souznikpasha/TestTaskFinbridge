@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 
-namespace BlazorApp1.Data
+namespace BlazorApp1.Model
 {
     public class AppSettings
     {
