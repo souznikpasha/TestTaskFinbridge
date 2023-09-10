@@ -1,0 +1,95 @@
+﻿@page "/"
+@using BlazorApp1.Data;
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations;
+@inject ICalculateService CalculateService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<h1>Калькулятор</h1>
+
+<EditForm Model="model" OnValidSubmit="Calculate">
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <label for="inputNumbers">Введите числа через запятую:</label>
+        <InputText id="inputNumbers" class="form-control" @bind-Value="model.InputNumbers"></InputText>
+        <ValidationMessage For="() => model.InputNumbers" />
+    </div>
+    <div class="form-group">
+        <button class="btn btn-primary" type="submit">Выполнить</button>
+    </div>
+    <div class="form-group">
+        <label for="result">Результат:</label>
+        <InputText id="result" class="form-control" @bind-Value="model.Result" disabled></InputText>
+    </div>
+</EditForm>
+
+<div class="form-group">
+    <h2>История результатов</h2>
+    <ul>
+        @foreach (var result in results)
+        {
+                <li>@result</li>
+        }
+    </ul>
+</div>
+
+@code {
+    private CalculatorModel model = new CalculatorModel();
+    private List<string> results = new List<string>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Вызываем JavaScriptInterop только после завершения предварительного рендеринга
+            var savedResults = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "results");
+            if (!string.IsNullOrWhiteSpace(savedResults))
+            {
+                results = savedResults.Split(',').ToList();
+            }
+            else
+            {
+                results = new List<string>();
+            }
+            StateHasChanged(); // Перерисовываем компонент после получения данных из JavaScript
+        }
+    }
+
+
+    private async Task Calculate()
+    {
+        if (string.IsNullOrWhiteSpace(model.InputNumbers))
+        {
+            model.Result = "Введите значения.";
+            return;
+        }
+
+        // Разделите введенные значения и преобразуйте их в List<double>
+        List<double> values = model.InputNumbers.Split(',').Select(value => double.Parse(value.Trim())).ToList();
+
+        // Вызов метода CalculateSumOfSquaresAsync из сервиса
+        double sumOfSquares = await CalculateService.CalculateSumOfSquares(values);
+
+        // Обновление результата
+        model.Result = sumOfSquares.ToString();
+
+        // Добавление результата в историю
+        results.Insert(0, model.Result);
+
+        // Сохранение истории в localStorage
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "results", string.Join(",", results));
+    }
+
+    public void Dispose()
+    {
+        // Освободите ресурсы, если это необходимо
+    }
+
+    private class CalculatorModel
+    {
+        [Required(ErrorMessage = "Введите числа")]
+        public string InputNumbers { get; set; }
+        public string Result { get; set; }
+    }
+}
