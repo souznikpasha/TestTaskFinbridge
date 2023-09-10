@@ -17,7 +17,7 @@ builder.Services.Configure<AppSettings>(configuration.GetSection("AppSettings"))
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddScoped<ICalculateService, CalculateController>();
+builder.Services.AddTransient<ICalculateService, CalculateController>();
 builder.Services.AddScoped<LocalStorageService>();
 
 var app = builder.Build();

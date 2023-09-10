@@ -18,6 +18,7 @@ namespace BlazorApp1.Data
         }
         public async Task<double> CalculateSumOfSquares(List<double> request)
         {
+            squares.Clear();
             if (IsArgumentCountExceeded(request.Count))
             {
                 return 0;
