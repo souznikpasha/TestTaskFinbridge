@@ -11,11 +11,13 @@ public class LocalStorageService
         _jsRuntime = jsRuntime;
     }
 
+    // Метод для установки значения в локальном хранилище браузера по ключу
     public async Task SetItemAsync(string key, string value)
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", key, value);
     }
 
+    // Метод для получения значения из локального хранилища браузера по ключу
     public async Task<string> GetItemAsync(string key)
     {
         return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", key);

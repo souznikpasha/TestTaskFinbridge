@@ -20,19 +20,26 @@ namespace BlazorApp1.Data
         public async Task<double> CalculateSumOfSquares(List<double> request)
         {
             squares.Clear();
-            if (IsArgumentCountExceeded(request.Count))
+            try
             {
-                return 0;
-            }
+                if (IsArgumentCountExceeded(request.Count))
+                {
+                    throw new ArgumentException("Превышено максимальное количество аргументов.");
+                }
 
-            if (IsAnyArgumentOutOfRange(request))
+                if (IsAnyArgumentOutOfRange(request))
+                {
+                    throw new ArgumentException("Превышено максимальное или минимальное значение аргумента.");
+                }
+
+                var sumOfSquares = await CalculateSumOfSquaresAsync(request);
+                return sumOfSquares;
+            }
+            catch (ArgumentException ex)
             {
-                return 0;
+                // Здесь можно обработать исключение или просто выбросить его дальше
+                throw;
             }
-
-            var sumOfSquares = await CalculateSumOfSquaresAsync(request);
-
-            return sumOfSquares;
         }
 
         /// <summary>
@@ -75,22 +82,14 @@ namespace BlazorApp1.Data
                     // Если результат не найден в кэше, вычисляем его
                     int delayMilliseconds = new Random().Next(_appSettings.DelayMinMilliseconds, _appSettings.DelayMaxMilliseconds);
 
-                    // Запоминаем текущее время до расчета квадрата
                     var startTime = DateTime.Now;
-
-                    // Рассчитываем квадрат числа
                     square = value * value;
-
-                    // Запоминаем текущее время после расчета квадрата
                     var endTime = DateTime.Now;
 
-                    // Вычисляем время, затраченное на расчет
-                    var elapsedTime = endTime - startTime;
-
                     // Если затраченное время меньше delayMilliseconds, ожидаем оставшееся время
-                    if (elapsedTime < TimeSpan.FromMilliseconds(delayMilliseconds))
+                    if (endTime - startTime < TimeSpan.FromMilliseconds(delayMilliseconds))
                     {
-                        var remainingDelay = TimeSpan.FromMilliseconds(delayMilliseconds) - elapsedTime;
+                        var remainingDelay = TimeSpan.FromMilliseconds(delayMilliseconds) - (endTime - startTime);
                         await Task.Delay(remainingDelay);
                     }
 

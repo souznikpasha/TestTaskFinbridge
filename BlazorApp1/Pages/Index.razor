@@ -43,7 +43,6 @@
     {
         if (firstRender)
         {
-            // Вызываем JavaScriptInterop только после завершения предварительного рендеринга
             var savedResults = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "results");
             if (!string.IsNullOrWhiteSpace(savedResults))
             {
@@ -53,7 +52,7 @@
             {
                 results = new List<string>();
             }
-            StateHasChanged(); // Перерисовываем компонент после получения данных из JavaScript
+            StateHasChanged();
         }
     }
 
@@ -66,10 +65,22 @@
             return;
         }
 
-        // Разделите введенные значения и преобразуйте их в List<double>
-        List<double> values = model.InputNumbers.Split(',').Select(value => double.Parse(value.Trim())).ToList();
+        try
+        {
+            // Разделение введенные значения и преобразуйте их в List<double>
+            List<double> values = model.InputNumbers.Split(',').Select(value => double.Parse(value.Trim())).ToList();
 
-        model.Result = (await CalculateService.CalculateSumOfSquares(values)).ToString();
+            double sumOfSquares = await CalculateService.CalculateSumOfSquares(values);
+            model.Result = sumOfSquares.ToString();
+        }
+        catch (FormatException ex)
+        {
+            model.Result = $"Ошибка при разборе чисел.";
+        }
+        catch (Exception ex)
+        {
+            model.Result = $"Ошибка: {ex.Message}";
+        }
 
         // Добавление результата в историю
         results.Insert(0, model.Result);
@@ -81,13 +92,6 @@
     {
         results.Clear();
         JSRuntime.InvokeVoidAsync("localStorage.removeItem", "results"); // Удаление из localStorage
-    }
-
-    private class CalculatorModel
-    {
-        [Required(ErrorMessage = "Введите числа")]
-        public string InputNumbers { get; set; }
-        public string Result { get; set; }
     }
 
     public void Dispose()

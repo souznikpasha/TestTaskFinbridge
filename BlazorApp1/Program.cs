@@ -20,6 +20,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddTransient<ICalculateService, CalculateController>();
 builder.Services.AddScoped<LocalStorageService>();
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 

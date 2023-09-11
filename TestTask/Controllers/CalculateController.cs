@@ -6,7 +6,7 @@ using System.Runtime;
 using Microsoft.Extensions.Caching.Memory;
 using TestTask;
 
-[Route("api/[controller]")]
+[Route("api")]
 [ApiController]
 public class CalculateController : ControllerBase
 {
