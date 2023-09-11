@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BlazorApp1.Model
+namespace Task4_5.Model
 {
     public class CalculatorModel
     {

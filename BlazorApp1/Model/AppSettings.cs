@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 
-namespace BlazorApp1.Model
+namespace Task4_5.Model
 {
     public class AppSettings
     {

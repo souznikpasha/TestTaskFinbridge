@@ -1,6 +1,6 @@
-using BlazorApp1;
-using BlazorApp1.Data;
-using BlazorApp1.Model;
+using Task4_5;
+using Task4_5.Data;
+using Task4_5.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 

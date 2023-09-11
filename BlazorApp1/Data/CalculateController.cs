@@ -1,9 +1,9 @@
-﻿using BlazorApp1.Model;
+﻿using Task4_5.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-namespace BlazorApp1.Data
+namespace Task4_5.Data
 {
     public class CalculateController : ControllerBase, ICalculateService
     {
